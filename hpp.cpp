@@ -1,7 +1,5 @@
 /*
  * Horizontal Projection Profile
- * Usage:
- * ./hpp <input-image-file>
  */
 
 #include <iostream>
@@ -61,7 +59,8 @@ int main(int argc, char** argv)
         horizontal.at<int>(i,0)=countNonZero(ret(Rect(i,0,1,ret.rows)));
     }
     */
-
+	int max = 0; 
+	int maxrow = 0;
     for(int i=0;i<ret.rows;i++)
     {
         vertical.at<int>(i,0) = countNonZero(ret(Rect(0,i,ret.cols,1)));
@@ -69,10 +68,50 @@ int main(int argc, char** argv)
         {
             hppimg.at<int>(i,j) = 0;
         }
+		if ( max < vertical.at<int>(i,0) )
+		{
+			max = vertical.at<int>(i,0);
+			maxrow = i;
+		}
     }
 
+	int thecol = max / 2;
+	/*
+	for(int i=0;i<ret.rows;i++)
+    {
+		hppimg.at<int>(i,thecol) = 230;
+	}
+	*/
+
+	//Mat hppc = imread(hppimg, CV_LOAD_IMAGE_COLOR);
+	int c1=0, c2=0, dsum=0, dnum=0;
+	bool flagtopblack=FALSE;
+	bool flagbottomblack=FALSE;
+	for(int i=1;i<ret.rows-1;i++) 
+	{
+		if(hppimg.at<int>(i,0) != 0 && hppimg.at<int>(i+1,0) == 0)
+		{
+            flagtopblack
+			printf("row = %d\n", i);
+			c1=0; c2=0;
+			for(int j=i;hppimg.at<int>(j,thecol)!=0 && j>=0;j--)
+			{
+				c1++;
+				hppimg.at<int>(j,thecol) = 30;
+			}
+			for(int j=i+1;hppimg.at<int>(j,thecol)!=0 && j<ret.rows-1;j++)
+			{
+				c2++;
+				hppimg.at<int>(j,thecol) = 200;
+			}
+			dsum = dsum + (c1 + c2);
+			dnum++;
+		}
+	}
     imwrite("hppimg.tif", hppimg);
     imshow("hppimg.tif", hppimg);
-    //waitKey(0);
+	int distance = dsum / dnum;
+	printf("max peak = %d, at = %d, midpoint = %d, distance = %d\n", max, maxrow, thecol, distance);
+    //waitKey(0);CV_RGB(255, 0, 0)
     return 0;
 }
