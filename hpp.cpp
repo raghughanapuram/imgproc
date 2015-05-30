@@ -16,27 +16,6 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    /*
-    IplImage* img = cvLoadImage(argv[1]);
-    IplImage* gray = cvCreateImage(cvGetSize(img),IPL_DEPTH_8U,1);
-    cvCvtColor(img, gray, CV_RGB2GRAY);
-    //cvThreshold(gray, binary, 200.0, 255.0, cv::THRESH_BINARY);
-    IplImage* img1 = cvCloneImage(gray);
-
-    // find the vertical projection
-    std::vector<CvRect> hpp; // holds the column sum values    
-    //double max_vl_proj = 0; // holds the maximum value    
-    for( int i=0;i<img1->height;++i )
-    {
-        CvMat row;
-        CvScalar row_sum;
-        cvGetRow( img, &row, i ); // get individual columns    
-        row_sum = cvSum( &row ); // find the sum of ith column
-        hpp.push_back( row_sum.val[0] ); // push back to vector
-    }
-    */
-
-
     Mat img = imread(argv[1]);
     Mat gray;
     cvtColor(img,gray,CV_BGR2GRAY);
@@ -76,14 +55,6 @@ int main(int argc, char** argv)
     }
 
 	int thecol = max / 2;
-	/*
-	for(int i=0;i<ret.rows;i++)
-    {
-		hppimg.at<int>(i,thecol) = 230;
-	}
-	*/
-
-	//Mat hppc = imread(hppimg, CV_LOAD_IMAGE_COLOR);
 	int c1=0, c2=0, dsum=0, dnum=0;
 	bool flagtopblack=FALSE;
 	bool flagbottomblack=FALSE;
@@ -91,27 +62,58 @@ int main(int argc, char** argv)
 	{
 		if(hppimg.at<int>(i,0) != 0 && hppimg.at<int>(i+1,0) == 0)
 		{
-            flagtopblack
-			printf("row = %d\n", i);
-			c1=0; c2=0;
-			for(int j=i;hppimg.at<int>(j,thecol)!=0 && j>=0;j--)
+            c1=0; c2=0;
+            flagtopblack=FALSE;
+            flagbottomblack=FALSE;
+			for(int j=i;j>=0;j--) // going Top
 			{
-				c1++;
-				hppimg.at<int>(j,thecol) = 30;
+                if(hppimg.at<int>(j,thecol)==0)
+                {
+                    flagtopblack = TRUE;
+                    break;
+                }
+                else
+                {
+                    c1++;
+                    //hppimg.at<int>(j,thecol) = 70;
+                }
 			}
-			for(int j=i+1;hppimg.at<int>(j,thecol)!=0 && j<ret.rows-1;j++)
+
+			for(int j=i+1;j<ret.rows-1;j++) // going Bottom
 			{
-				c2++;
-				hppimg.at<int>(j,thecol) = 200;
+                if(hppimg.at<int>(j,thecol)==0)
+                {
+                    flagbottomblack = TRUE;
+                    break;
+                }
+                else
+                {
+                    c2++;
+                    //hppimg.at<int>(j,thecol) = 200;
+                }
 			}
-			dsum = dsum + (c1 + c2);
-			dnum++;
+
+            if(flagtopblack == TRUE && flagbottomblack == TRUE)
+            {
+                dsum = dsum + (c1 + c2);
+                dnum++;
+
+                for (int k = 0; k < c1; ++k)
+                {
+                    hppimg.at<int>(i-k,thecol) = 70;
+                }
+                for (int k = 0; k < c2; ++k)
+                {
+                    hppimg.at<int>(i+1+k,thecol) = 180;
+                }
+            }
 		}
 	}
     imwrite("hppimg.tif", hppimg);
     imshow("hppimg.tif", hppimg);
 	int distance = dsum / dnum;
-	printf("max peak = %d, at = %d, midpoint = %d, distance = %d\n", max, maxrow, thecol, distance);
-    //waitKey(0);CV_RGB(255, 0, 0)
+	printf("max peak = %d, at = %d, midpoint = %d\ndsum = %d, dnum = %d, distance = %d\n", 
+        max, maxrow, thecol, dsum, dnum, distance);
+    //waitKey(0);
     return 0;
 }
